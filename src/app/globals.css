@@ -1,0 +1,241 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f0f4f8;
+  --foreground: #0f172a;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Fundo Geral Refinado com Iluminação Suave Verde Futebol e Azul UGTSIC */
+.bg-ugtsic-arena {
+  background-color: #f0f4f8;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.09) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(2, 132, 199, 0.09) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+}
+
+/* Card Padrão com Elevação Suave e Acabamento Premium */
+.arena-card {
+  background-color: #ffffff;
+  border: 1px solid rgba(203, 213, 225, 0.85);
+  box-shadow:
+    0 4px 6px -1px rgba(15, 23, 42, 0.04),
+    0 10px 20px -3px rgba(15, 23, 42, 0.05);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.25s ease;
+}
+
+.arena-card:hover {
+  box-shadow:
+    0 10px 25px -4px rgba(15, 23, 42, 0.08),
+    0 4px 10px -2px rgba(16, 185, 129, 0.06);
+}
+
+/* ==========================================================================
+   ANIMAÇÕES TEMÁTICAS DOS ÍCONES DE FUTEBOL (Relacionadas ao significado)
+   ========================================================================== */
+
+/* 1. Bola de Futebol: Quica e gira como bola em jogo */
+@keyframes soccerRollBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-2px) rotate(270deg);
+  }
+}
+
+.anim-soccer-ball {
+  animation: soccerRollBounce 4.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+button:hover .anim-soccer-ball,
+.group:hover .anim-soccer-ball {
+  animation-duration: 1.4s;
+}
+
+/* 2. Apito do Juiz: Vibra/trila como apito soprando */
+@keyframes whistleTrill {
+  0%, 70%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  75% {
+    transform: rotate(-14deg) scale(1.08);
+  }
+  80% {
+    transform: rotate(14deg) scale(1.08);
+  }
+  85% {
+    transform: rotate(-12deg) scale(1.08);
+  }
+  90% {
+    transform: rotate(12deg) scale(1.08);
+  }
+  95% {
+    transform: rotate(-6deg) scale(1.04);
+  }
+}
+
+.anim-whistle {
+  animation: whistleTrill 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* 3. Chuteira / Atacante: Movimento de armar o chute e chutar a bola */
+@keyframes cleatKick {
+  0%, 75%, 100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  30% {
+    transform: rotate(16deg) translateX(-2px) translateY(-1px);
+  }
+  45% {
+    transform: rotate(-22deg) translateX(3px) translateY(-2px);
+  }
+  60% {
+    transform: rotate(5deg) translateX(0);
+  }
+}
+
+.anim-kick {
+  animation: cleatKick 3.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  transform-origin: top left;
+}
+
+/* 4. Luvas de Goleiro: Movimento elástico de defesa / ponte */
+@keyframes goalieSave {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  35% {
+    transform: translateY(-3px) rotate(-10deg) scale(1.08);
+  }
+  65% {
+    transform: translateY(-2px) rotate(10deg) scale(1.08);
+  }
+}
+
+.anim-gloves {
+  animation: goalieSave 3s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* 5. Rede / Trave do Gol: Balança como a rede estufando no gol */
+@keyframes netShake {
+  0%, 100% {
+    transform: scale(1) skewX(0deg);
+  }
+  30% {
+    transform: scale(1.07, 0.95) skewX(4deg);
+  }
+  50% {
+    transform: scale(0.97, 1.04) skewX(-3deg);
+  }
+  70% {
+    transform: scale(1.02, 0.99) skewX(1deg);
+  }
+}
+
+.anim-goal-net {
+  animation: netShake 3.5s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+/* 6. Camisa / Uniforme: Flutuação de manto no vestiário */
+@keyframes jerseyWave {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2.5px) rotate(-3deg);
+  }
+}
+
+.anim-jersey {
+  animation: jerseyWave 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+/* 7. Campo Tático: Pulso tático de radar */
+@keyframes pitchPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+.anim-pitch {
+  animation: pitchPulse 3s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* 8. Troféu: Brilho e elevação de campeão */
+@keyframes trophyLift {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  40% {
+    transform: translateY(-3px) scale(1.1) rotate(-4deg);
+  }
+  60% {
+    transform: translateY(-3px) scale(1.1) rotate(4deg);
+  }
+}
+
+.anim-trophy {
+  animation: trophyLift 3.2s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* 9. Dados de Sorteio: Giro de sorteio */
+@keyframes diceTumble {
+  0%, 75%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-18deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(18deg) scale(1.1);
+  }
+}
+
+.anim-dice {
+  animation: diceTumble 2.8s ease-in-out infinite;
+}
+
+/* Scrollbar discreta */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f0f4f8;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
