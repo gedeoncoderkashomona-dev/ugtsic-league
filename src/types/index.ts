@@ -65,6 +65,6 @@ export interface Match {
   scoreTeamB: number;
   presences: MatchPresence[];
   events: MatchEvent[];
-  votes: MatchVote[];
+  votes?: MatchVote[];
 }
 
