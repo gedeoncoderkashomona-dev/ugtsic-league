@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { PlayerProfile, Match } from '@/types';
+import { PlayerProfile, Match, PreferencePosition } from '@/types';
 import { EMPTY_USER_TEMPLATE } from './mock-data';
 
 const STORAGE_KEYS = {
@@ -29,7 +29,7 @@ export interface PersistedUIState {
   scoreScorerId?: string;
   scoreAssistId?: string;
   scoreMinute?: number;
-  drawPreference?: 'linha' | 'goleiro' | 'reserva';
+  drawPreference?: PreferencePosition;
 }
 
 function cleanupLegacyStorage() {
