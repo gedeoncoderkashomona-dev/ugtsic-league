@@ -34,7 +34,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 }) => {
   const [fullName, setFullName] = useState(player.fullName);
   const [nickname, setNickname] = useState(player.nickname);
-  const [shirtNumber, setShirtNumber] = useState(player.shirtNumber);
+  const [shirtNumber, setShirtNumber] = useState<string>(
+    player.shirtNumber ? String(player.shirtNumber) : '10'
+  );
   const [favoritePosition, setFavoritePosition] = useState<Position>(player.favoritePosition);
   const [avatarUrl, setAvatarUrl] = useState(player.avatarUrl);
   const [selectedCategory, setSelectedCategory] = useState<AvatarFilterCategory>('todos');
@@ -47,7 +49,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   useEffect(() => {
     setFullName(player.fullName);
     setNickname(player.nickname);
-    setShirtNumber(player.shirtNumber);
+    setShirtNumber(player.shirtNumber ? String(player.shirtNumber) : '10');
     setFavoritePosition(player.favoritePosition);
     setAvatarUrl(player.avatarUrl || FOOTBALL_AVATARS[0].url);
   }, [player, isOpen]);
@@ -82,11 +84,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       return;
     }
 
+    const parsedShirt = parseInt(shirtNumber, 10);
+    const validShirtNumber = Number.isNaN(parsedShirt)
+      ? 10
+      : Math.max(1, Math.min(99, parsedShirt));
+
     const updated: PlayerProfile = {
       ...player,
       fullName,
       nickname,
-      shirtNumber: Number(shirtNumber) || 10,
+      shirtNumber: validShirtNumber,
       favoritePosition,
       avatarUrl: avatarUrl || FOOTBALL_AVATARS[0].url,
     };
@@ -260,11 +267,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     Nº da Camisa
                   </label>
                   <input
-                    type="number"
-                    min="1"
-                    max="99"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={2}
+                    placeholder="10"
                     value={shirtNumber}
-                    onChange={(e) => setShirtNumber(Number(e.target.value))}
+                    onChange={(e) => {
+                      const onlyDigits = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                      setShirtNumber(onlyDigits.slice(0, 2));
+                    }}
                     className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold focus:outline-none focus:border-emerald-600"
                   />
                 </div>

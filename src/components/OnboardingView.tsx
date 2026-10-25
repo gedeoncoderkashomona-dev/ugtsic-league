@@ -99,7 +99,9 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
   const [fullName, setFullName] = useState(cleanInitialName || '');
   const [nickname, setNickname] = useState(initialPlayer.nickname || '');
   const [techRole, setTechRole] = useState(existingRoleMatch ? existingRoleMatch[1] : 'Dev SESAP');
-  const [shirtNumber, setShirtNumber] = useState<number>(initialPlayer.shirtNumber || 10);
+  const [shirtNumber, setShirtNumber] = useState<string>(
+    initialPlayer.shirtNumber ? String(initialPlayer.shirtNumber) : '10'
+  );
   const [favoritePosition, setFavoritePosition] = useState<Position>(
     initialPlayer.favoritePosition || 'meio-campo'
   );
@@ -156,11 +158,16 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     const finalNickname = nickname.trim() || trimmedName.split(' ')[0];
     const finalAvatar = customAvatarUrl || FOOTBALL_AVATARS[0].url;
 
+    const parsedShirt = parseInt(shirtNumber, 10);
+    const validShirtNumber = Number.isNaN(parsedShirt)
+      ? 10
+      : Math.max(1, Math.min(99, parsedShirt));
+
     const updatedProfile: PlayerProfile = {
       ...initialPlayer,
       fullName: formattedFullName,
       nickname: finalNickname,
-      shirtNumber: Math.max(1, Math.min(99, Number(shirtNumber) || 10)),
+      shirtNumber: validShirtNumber,
       favoritePosition,
       avatarUrl: finalAvatar,
     };
@@ -465,11 +472,16 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                   Nº Camisa
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  max="99"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={2}
+                  placeholder="10"
                   value={shirtNumber}
-                  onChange={(e) => setShirtNumber(Number(e.target.value))}
+                  onChange={(e) => {
+                    const onlyDigits = e.target.value.replace(/\D/g, '').replace(/^0+/, '');
+                    setShirtNumber(onlyDigits.slice(0, 2));
+                  }}
                   className="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-black text-center focus:outline-none focus:border-emerald-600"
                 />
               </div>
