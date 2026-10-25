@@ -221,21 +221,47 @@ export default function HomePage() {
     const target = players.find((p) => p.id === playerId);
     if (!target) return;
 
+    const newVote = {
+      id: `vote-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      matchId: match.id,
+      voterId: currentPlayer.id || 'anon',
+      targetPlayerId: playerId,
+      stars: rating,
+      category: categoryVote as any,
+      createdAt: new Date().toISOString(),
+    };
+
+    const existingVotes = Array.isArray(match.votes) ? match.votes : [];
+    const updatedVotes = [...existingVotes, newVote];
+    const votesForTarget = updatedVotes.filter((v) => v.targetPlayerId === playerId);
+
+    const avgStarsFromVotes = Number(
+      (
+        votesForTarget.reduce((acc, v) => acc + Number(v.stars), 0) /
+        votesForTarget.length
+      ).toFixed(1)
+    );
+
     const newRating =
-      target.starsRating <= 0
+      votesForTarget.length > 0
+        ? avgStarsFromVotes
+        : target.starsRating <= 0
         ? Number(rating.toFixed(1))
-        : Number(((target.starsRating * 3 + rating) / 4).toFixed(1));
-    const baseOverallFromStars = Math.round(50 + newRating * 9);
-    const newOverall =
-      target.overallRating <= 0
-        ? Math.min(99, baseOverallFromStars)
-        : Math.min(99, Math.max(baseOverallFromStars, Math.round(target.overallRating + (rating >= 4.5 ? 2 : rating >= 3.5 ? 1 : 0))));
+        : Number(((target.starsRating + rating) / 2).toFixed(1));
+
+    const performanceBonus =
+      (target.goals || 0) * 2 + (target.assists || 0) * 1 + (target.victories || 0) * 1;
+    const newOverall = Math.min(
+      99,
+      Math.max(55, Math.round(50 + newRating * 8 + performanceBonus))
+    );
     const isMvp = categoryVote === 'mvp' ? target.mvpCount + 1 : target.mvpCount;
 
     const updatedTarget: PlayerProfile = {
       ...target,
       starsRating: newRating,
       overallRating: newOverall,
+      matchesPlayed: Math.max(1, target.matchesPlayed || 0),
       mvpCount: isMvp,
     };
 
@@ -244,6 +270,7 @@ export default function HomePage() {
 
     const updatedMatch: Match = {
       ...match,
+      votes: updatedVotes,
       presences: match.presences.map((pr) =>
         pr.playerId === playerId ? { ...pr, player: updatedTarget } : pr
       ),

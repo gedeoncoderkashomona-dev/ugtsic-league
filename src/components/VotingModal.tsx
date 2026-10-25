@@ -59,11 +59,13 @@ export const VotingModal: React.FC<VotingModalProps> = ({
         </button>
 
         {feedbackSuccess ? (
-          <div className="py-12 flex flex-col items-center justify-center text-center">
+          <div className="py-10 flex flex-col items-center justify-center text-center">
             <CheckCircle2 className="w-16 h-16 text-emerald-600 mb-3 animate-bounce" />
             <h3 className="text-xl font-black text-slate-900">Voto Computado!</h3>
             <p className="text-sm text-slate-500 mt-1">
-              O ranking de estrelas do jogador foi atualizado.
+              Os atributos de campo (OVR, RIT, FIN, PAS, DRI, DEF, FIS) e as estrelas de{' '}
+              <strong className="text-slate-800">{player.nickname || player.fullName.split(' ')[0]}</strong>{' '}
+              foram atualizados!
             </p>
           </div>
         ) : (

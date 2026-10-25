@@ -419,13 +419,32 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
                 <span>{whatsappCopied ? 'Copiado!' : 'Enviar no Zap'}</span>
               </button>
 
-              {isMatchFinished && (
+              {timer.period === 'nao_iniciado' ? (
                 <button
+                  type="button"
+                  onClick={handleStartFirstHalf}
+                  className="col-span-2 sm:col-span-1 px-4 py-2.5 sm:py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95"
+                >
+                  <Play className="w-4 h-4 fill-slate-950 shrink-0" />
+                  <span>Iniciar Partida</span>
+                </button>
+              ) : !isMatchFinished ? (
+                <button
+                  type="button"
+                  onClick={handleFinishMatch}
+                  className="col-span-2 sm:col-span-1 px-4 py-2.5 sm:py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95"
+                >
+                  <WhistleIcon className="w-4 h-4 shrink-0" />
+                  <span>Encerrar Partida</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
                   onClick={onOpenVoting}
                   className="col-span-2 sm:col-span-1 px-4 py-2.5 sm:py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 shadow-md transition-all"
                 >
                   <Award className="w-4 h-4 shrink-0" />
-                  <span>Avaliar Jogadores</span>
+                  <span>Votar nos Craques</span>
                 </button>
               )}
             </div>
@@ -728,11 +747,22 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
             )}
 
             {isMatchFinished && (
-              <div className="mt-4 p-3.5 rounded-xl bg-amber-400 text-slate-950 text-center font-black text-xs sm:text-sm flex items-center justify-center gap-2">
-                <Trophy className="w-4 h-4 shrink-0" />
-                {winner === 'azul' && `FIM DE JOGO! VITÓRIA DO ${match.teamAName.toUpperCase()}!`}
-                {winner === 'vermelho' && `FIM DE JOGO! VITÓRIA DO ${match.teamBName.toUpperCase()}!`}
-                {winner === 'empate' && 'FIM DE JOGO! PARTIDA ENCERRADA EM EMPATE!'}
+              <div className="mt-4 p-4 rounded-2xl bg-amber-400 text-slate-950 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2 font-black text-xs sm:text-sm text-center sm:text-left">
+                  <Trophy className="w-5 h-5 shrink-0" />
+                  <span>
+                    {winner === 'azul' && `FIM DE JOGO! VITÓRIA DO ${match.teamAName.toUpperCase()}!`}
+                    {winner === 'vermelho' && `FIM DE JOGO! VITÓRIA DO ${match.teamBName.toUpperCase()}!`}
+                    {winner === 'empate' && 'FIM DE JOGO! PARTIDA ENCERRADA EM EMPATE!'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenVoting}
+                  className="px-4 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs whitespace-nowrap transition-all"
+                >
+                  Votar & Atualizar Atributos →
+                </button>
               </div>
             )}
           </div>
@@ -749,6 +779,8 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
           <p className="text-xs text-slate-500 mb-4">
             {isMatchFinished
               ? 'Partida encerrada. A súmula está fechada.'
+              : !isMatchActive
+              ? 'Clique em "Iniciar Partida" acima para liberar o registro de gols.'
               : 'Registre quem marcou e quem deu a assistência com o minuto automático do relógio.'}
           </p>
 
@@ -760,7 +792,7 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  disabled={isMatchFinished}
+                  disabled={!isMatchActive || isMatchFinished}
                   onClick={() => {
                     setGoalTeam('azul');
                     setScorerId('');
@@ -778,7 +810,7 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
 
                 <button
                   type="button"
-                  disabled={isMatchFinished}
+                  disabled={!isMatchActive || isMatchFinished}
                   onClick={() => {
                     setGoalTeam('vermelho');
                     setScorerId('');
@@ -802,7 +834,7 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
               </label>
               <select
                 required
-                disabled={isMatchFinished}
+                disabled={!isMatchActive || isMatchFinished}
                 value={scorerId}
                 onChange={(e) => setScorerId(e.target.value)}
                 className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:border-emerald-600 disabled:opacity-50"
@@ -822,7 +854,7 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
                   Assistência (Garçom)
                 </label>
                 <select
-                  disabled={isMatchFinished}
+                  disabled={!isMatchActive || isMatchFinished}
                   value={assistId}
                   onChange={(e) => setAssistId(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:border-emerald-600 disabled:opacity-50"
@@ -846,7 +878,7 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
                     type="number"
                     min="1"
                     max="120"
-                    disabled={isMatchFinished}
+                    disabled={!isMatchActive || isMatchFinished}
                     value={minute}
                     onChange={(e) => setMinute(Number(e.target.value))}
                     className="w-full pl-7 pr-2 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-semibold disabled:opacity-50"
@@ -857,7 +889,7 @@ export const ScoreBoardView: React.FC<ScoreBoardViewProps> = ({
 
             <button
               type="submit"
-              disabled={isMatchFinished || !scorerId}
+              disabled={!isMatchActive || isMatchFinished || !scorerId}
               className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black rounded-xl text-xs shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
             >
               <SoccerBallIcon className="w-4 h-4" />

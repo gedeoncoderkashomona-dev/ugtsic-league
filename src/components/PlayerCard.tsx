@@ -45,6 +45,45 @@ const positionConfig: Record<
   },
 };
 
+function computeDynamicAttributes(player: PlayerProfile) {
+  const hasPlayedOrRated =
+    player.starsRating > 0 ||
+    player.overallRating > 0 ||
+    player.goals > 0 ||
+    player.assists > 0 ||
+    player.matchesPlayed > 0;
+
+  if (!hasPlayedOrRated) {
+    return [
+      { code: 'RIT', label: 'Ritmo', value: 0 },
+      { code: 'FIN', label: 'Finalização', value: 0 },
+      { code: 'PAS', label: 'Passe', value: 0 },
+      { code: 'DRI', label: 'Drible', value: 0 },
+      { code: 'DEF', label: 'Defesa', value: 0 },
+      { code: 'FIS', label: 'Físico', value: 0 },
+    ];
+  }
+
+  const base = player.overallRating > 0 ? player.overallRating : Math.round(50 + player.starsRating * 8);
+  const pos = player.favoritePosition;
+
+  const rit = Math.min(99, base + (pos === 'atacante' ? 4 : pos === 'meio-campo' ? 2 : 0) + Math.min(5, player.victories));
+  const fin = Math.min(99, base + (pos === 'atacante' ? 5 : pos === 'goleiro' ? -12 : 0) + Math.min(10, player.goals * 2));
+  const pas = Math.min(99, base + (pos === 'meio-campo' ? 5 : 1) + Math.min(10, player.assists * 2));
+  const dri = Math.min(99, base + (pos === 'meio-campo' || pos === 'atacante' ? 4 : 0) + Math.min(6, player.mvpCount * 2));
+  const def = Math.min(99, base + (pos === 'zagueiro' || pos === 'goleiro' ? 7 : -6) + Math.min(6, player.victories));
+  const fis = Math.min(99, base + 2 + Math.min(6, player.matchesPlayed));
+
+  return [
+    { code: 'RIT', label: 'Ritmo', value: Math.max(40, rit) },
+    { code: 'FIN', label: 'Finalização', value: Math.max(35, fin) },
+    { code: 'PAS', label: 'Passe', value: Math.max(40, pas) },
+    { code: 'DRI', label: 'Drible', value: Math.max(40, dri) },
+    { code: 'DEF', label: 'Defesa', value: Math.max(35, def) },
+    { code: 'FIS', label: 'Físico', value: Math.max(45, fis) },
+  ];
+}
+
 export const PlayerCard: React.FC<PlayerCardProps> = ({
   player,
   compact = false,
@@ -54,6 +93,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 }) => {
   const pos = positionConfig[player.favoritePosition] || positionConfig['meio-campo'];
   const PosIcon = pos.Icon;
+  const attributes = computeDynamicAttributes(player);
 
   if (compact) {
     return (
@@ -154,8 +194,29 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           </div>
         </div>
 
+        {/* Atributos Dinâmicos da Carta (Atualizados conforme Votos, Gols e Assistências) */}
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-2">
+            Atributos de Campo (Pós-Jogo)
+          </span>
+          <div className="grid grid-cols-3 gap-1.5">
+            {attributes.map((attr) => (
+              <div
+                key={attr.code}
+                title={attr.label}
+                className="px-2 py-1.5 rounded-lg bg-slate-900 text-white flex items-center justify-between"
+              >
+                <span className="text-[10px] font-bold text-emerald-400">{attr.code}</span>
+                <span className="text-xs font-mono font-black">
+                  {attr.value > 0 ? attr.value : '--'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Estatísticas organizadas */}
-        <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+        <div className="grid grid-cols-3 gap-2 mt-3 text-center">
           <div className="bg-slate-50 rounded-xl p-2 border border-slate-200/80">
             <span className="text-[10px] text-slate-500 block uppercase font-bold">Gols</span>
             <span className="text-sm font-black text-emerald-700">{player.goals}</span>
