@@ -827,3 +827,4 @@ export const FOOTBALL_AVATARS: FootballAvatarItem[] = AVATAR_SPECS.map((spec) =>
   category: spec.category,
   url: buildAvatarDataUri(spec),
 }));
+

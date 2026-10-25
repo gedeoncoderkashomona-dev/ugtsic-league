@@ -7,3 +7,4 @@
 - [ ] Testes unitários passando (`npm test`)
 - [ ] Testado em layout Mobile e Desktop
 - [ ] Sem dados fictícios na inicialização
+

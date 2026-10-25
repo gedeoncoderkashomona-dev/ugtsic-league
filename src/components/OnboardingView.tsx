@@ -230,20 +230,14 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
 
           {/* PREVIEW EM TEMPO REAL DA CARTA DO JOGADOR */}
           <div className="relative z-10 my-6 bg-black/35 backdrop-blur-md border border-white/25 rounded-3xl p-5 shadow-lg">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> Preview da Sua Carta
+            <div className="flex items-center justify-between gap-2 mb-3.5">
+              <span className="text-[11px] font-black uppercase tracking-widest text-amber-300 flex items-center gap-1.5 whitespace-nowrap">
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Preview da Sua Carta</span>
               </span>
-              <div className="flex items-center gap-1.5">
-                {!customAvatarUrl && (
-                  <span className="text-[10px] font-bold bg-white/15 text-emerald-100 px-2 py-0.5 rounded-full">
-                    {currentShowcase.genderLabel}
-                  </span>
-                )}
-                <span className="text-xs font-black bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full">
-                  {initialPlayer.overallRating} OVR
-                </span>
-              </div>
+              <span className="text-xs font-black bg-emerald-500 text-slate-950 px-3 py-1 rounded-full whitespace-nowrap shrink-0 shadow-sm">
+                {initialPlayer.overallRating} OVR
+              </span>
             </div>
 
             <div className="flex items-center gap-4">
@@ -268,11 +262,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 <p className="text-xs text-emerald-200 font-bold truncate">
                   &quot;{nickname.trim() || (fullName.trim() ? fullName.trim().split(' ')[0] : currentShowcase.sampleNick)}&quot;
                 </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs font-black text-amber-300 bg-white/10 px-2.5 py-0.5 rounded-lg">
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  <span className="text-xs font-black text-amber-300 bg-white/10 px-2.5 py-0.5 rounded-lg whitespace-nowrap shrink-0">
                     ★ {initialPlayer.starsRating.toFixed(1)}
                   </span>
-                  <span className="text-[11px] text-emerald-100 font-semibold">
+                  <span className="text-[11px] text-emerald-100 font-semibold whitespace-nowrap">
                     {checkInPref === 'nao_confirmar'
                       ? 'Fora da lista hoje'
                       : `Confirmado (${checkInPref.toUpperCase()})`}
@@ -282,21 +276,18 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
             </div>
 
             {!customAvatarUrl && (
-              <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[10px] text-emerald-200/90">
-                <span>Alternando demonstração para todos os perfis</span>
-                <div className="flex items-center gap-1">
-                  {PREVIEW_SHOWCASE_PROFILES.map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setPreviewIndex(idx)}
-                      className={`h-1.5 rounded-full transition-all ${
-                        previewIndex === idx ? 'w-4 bg-amber-400' : 'w-1.5 bg-white/30'
-                      }`}
-                      aria-label={`Ver demonstração ${idx + 1}`}
-                    />
-                  ))}
-                </div>
+              <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-end gap-1.5">
+                {PREVIEW_SHOWCASE_PROFILES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setPreviewIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      previewIndex === idx ? 'w-4 bg-amber-400' : 'w-1.5 bg-white/30 hover:bg-white/60'
+                    }`}
+                    aria-label={`Ver demonstração ${idx + 1}`}
+                  />
+                ))}
               </div>
             )}
           </div>

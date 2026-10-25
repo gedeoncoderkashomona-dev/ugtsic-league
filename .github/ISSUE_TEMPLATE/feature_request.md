@@ -11,3 +11,4 @@ Descreva qual melhoria você gostaria de ver no app da pelada (ex: novo filtro n
 
 ## Como deve funcionar?
 Explique como o jogador ou organizador usaria essa função no celular ou computador.
+

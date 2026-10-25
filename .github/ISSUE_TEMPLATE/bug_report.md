@@ -20,3 +20,4 @@ O que deveria acontecer normalmente.
 ## Dispositivo / Navegador
 - [ ] Celular (Android / iOS)
 - [ ] Computador (Chrome / Edge / Safari)
+

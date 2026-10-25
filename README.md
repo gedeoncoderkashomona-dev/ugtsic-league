@@ -1,5 +1,7 @@
 # ⚽ UGTSIC League — Plataforma de Gestão de Futebol Corporativo (Society)
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4aafb56e-46cb-4255-9158-7ed09e8557b8/deploy-status)](https://app.netlify.com/sites/ugtsic-league/deploys)
+
 Aplicação web **Mobile-First** desenvolvida para gerenciar as partidas semanais de futebol society da equipe de desenvolvimento e tecnologia da **UGTSIC / SESAP / G Trigueiro** (Natal/RN).
 
 O sistema automatiza todo o fluxo da pelada: **credenciamento de atletas no 1º acesso**, **confirmação de presença (check-in)**, **sorteio equilibrado de equipes (Snake Draft)**, **súmula ao vivo com placar e artilharia**, **votação pós-jogo (1 a 5 estrelas)**, **ranking por posição** e **exportação de relatórios em PDF e WhatsApp**.
