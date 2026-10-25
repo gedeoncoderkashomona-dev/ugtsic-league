@@ -15,11 +15,11 @@ const positions: Position[] = ['goleiro', 'goleiro', 'zagueiro', 'zagueiro', 'me
 
 const TEST_PLAYERS: PlayerProfile[] = Array.from({ length: 12 }, (_, idx) => ({
   id: `p${idx + 1}`,
-  fullName: idx === 0 ? 'Gedeon Trigueiro' : idx === 6 ? 'Thiago Moura (QA)' : `Atleta ${idx + 1}`,
-  nickname: idx === 0 ? 'Ged' : `Craque${idx + 1}`,
+  fullName: idx === 0 ? 'Carlos Eduardo (Backend)' : idx === 6 ? 'Thiago Moura (QA)' : `Atleta ${idx + 1}`,
+  nickname: idx === 0 ? 'Cadu' : `Craque${idx + 1}`,
   shirtNumber: idx + 1,
   favoritePosition: positions[idx],
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+  avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
   overallRating: 89 - idx,
   starsRating: Number((4.9 - idx * 0.05).toFixed(1)),
   matchesPlayed: 10,
@@ -132,7 +132,7 @@ describe('UGTSIC League — Testes Unitários das Regras de Negócio', () => {
             id: 'ev-1',
             matchId: 'match-test-1',
             playerId: 'p1',
-            playerName: 'Gedeon Trigueiro',
+            playerName: 'Carlos Eduardo (Backend)',
             assistPlayerId: 'p7',
             assistPlayerName: 'Thiago Moura (QA)',
             team: 'azul',
@@ -145,13 +145,13 @@ describe('UGTSIC League — Testes Unitários das Regras de Negócio', () => {
       const summary = generateWhatsAppSummary(matchWithGoals, TEST_PLAYERS);
       expect(summary).toContain('UGTSIC LEAGUE');
       expect(summary).toContain('4 x 3');
-      expect(summary).toContain('Gedeon Trigueiro');
+      expect(summary).toContain('Carlos Eduardo');
       expect(summary).toContain('Thiago Moura');
       expect(summary).not.toContain('\uFFFD');
     });
   });
 
-  describe('3. Validação de Foto de Perfil até 100MB (image-processor)', () => {
+  describe('3. Validação de Foto de Perfil (image-processor)', () => {
     it('deve rejeitar arquivos maiores que 100MB', async () => {
       const over100MBFile = {
         size: 101 * 1024 * 1024,
@@ -167,24 +167,24 @@ describe('UGTSIC League — Testes Unitários das Regras de Negócio', () => {
 
   describe('4. Persistência de Foto e Perfil do Jogador (supabase-service)', () => {
     it('deve atualizar a foto e dados do jogador tanto na lista geral quanto nas presenças da partida', async () => {
-      const updatedGedeon = {
+      const updatedAthlete = {
         ...TEST_PLAYERS[0],
-        fullName: 'Gedeon Trigueiro Oficial',
+        fullName: 'Carlos Eduardo Oficial',
         avatarUrl: 'data:image/webp;base64,NOVA_FOTO_SALVA',
       };
 
       const { updatedPlayers, updatedMatch } = await savePlayerProfile(
-        updatedGedeon,
+        updatedAthlete,
         TEST_PLAYERS,
         TEST_MATCH
       );
 
-      const playerInList = updatedPlayers.find((p) => p.id === updatedGedeon.id);
-      const presenceInMatch = updatedMatch.presences.find((pr) => pr.playerId === updatedGedeon.id);
+      const playerInList = updatedPlayers.find((p) => p.id === updatedAthlete.id);
+      const presenceInMatch = updatedMatch.presences.find((pr) => pr.playerId === updatedAthlete.id);
 
       expect(playerInList?.avatarUrl).toBe('data:image/webp;base64,NOVA_FOTO_SALVA');
       expect(presenceInMatch?.player.avatarUrl).toBe('data:image/webp;base64,NOVA_FOTO_SALVA');
-      expect(presenceInMatch?.player.fullName).toBe('Gedeon Trigueiro Oficial');
+      expect(presenceInMatch?.player.fullName).toBe('Carlos Eduardo Oficial');
     });
   });
 });

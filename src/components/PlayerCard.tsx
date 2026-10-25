@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { PlayerProfile, Position } from '@/types';
+import { FOOTBALL_AVATARS } from '@/lib/football-avatars';
 import { StarRating } from './StarRating';
 import { Award, Star } from 'lucide-react';
 import { GlovesIcon, JerseyIcon, PitchIcon, CleatsIcon, SoccerBallIcon } from './FootballIcons';
@@ -63,10 +64,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         <div className="relative shrink-0">
           <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-emerald-500 shadow-sm">
             <img
-              src={
-                player.avatarUrl ||
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'
-              }
+              src={player.avatarUrl || FOOTBALL_AVATARS[0].url}
               alt={player.fullName}
               className="w-full h-full object-cover"
             />
@@ -126,10 +124,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           <div className="relative">
             <div className="w-20 h-20 rounded-full p-1 bg-white shadow-md">
               <img
-                src={
-                  player.avatarUrl ||
-                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'
-                }
+                src={player.avatarUrl || FOOTBALL_AVATARS[0].url}
                 alt={player.fullName}
                 className="w-full h-full rounded-full object-cover"
               />

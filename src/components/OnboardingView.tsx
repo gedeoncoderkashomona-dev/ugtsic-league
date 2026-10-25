@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { PlayerProfile, Position, PreferencePosition } from '@/types';
 import { processProfileAvatar } from '@/lib/image-processor';
+import { FOOTBALL_AVATARS, FootballAvatarItem } from '@/lib/football-avatars';
 import {
   Camera,
   User,
@@ -29,12 +30,42 @@ interface OnboardingViewProps {
   ) => void;
 }
 
-const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
+const PREVIEW_SHOWCASE_PROFILES: {
+  url: string;
+  genderLabel: string;
+  sampleName: string;
+  sampleNick: string;
+}[] = [
+  {
+    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
+    genderLabel: 'Perfil Masculino',
+    sampleName: 'Seu Nome Aqui',
+    sampleNick: 'Craque',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80',
+    genderLabel: 'Perfil Masculino',
+    sampleName: 'Seu Nome Aqui',
+    sampleNick: 'Capitão',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+    genderLabel: 'Perfil Feminino',
+    sampleName: 'Seu Nome Aqui',
+    sampleNick: 'Artilheira',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80',
+    genderLabel: 'Perfil Masculino',
+    sampleName: 'Seu Nome Aqui',
+    sampleNick: 'Maestro',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80',
+    genderLabel: 'Perfil Feminino',
+    sampleName: 'Seu Nome Aqui',
+    sampleNick: 'Camisa 10',
+  },
 ];
 
 const TECH_ROLES = [
@@ -46,6 +77,16 @@ const TECH_ROLES = [
   'DevOps',
   'QA',
   'UX/UI',
+];
+
+type AvatarFilterCategory = 'todos' | FootballAvatarItem['category'];
+
+const AVATAR_CATEGORIES: { id: AvatarFilterCategory; label: string }[] = [
+  { id: 'todos', label: 'Todos (50)' },
+  { id: 'mascotes', label: 'Mascotes & Feras' },
+  { id: 'personagens', label: 'Personagens' },
+  { id: 'futebol', label: 'Futebol' },
+  { id: 'especiais', label: 'Especiais' },
 ];
 
 export const OnboardingView: React.FC<OnboardingViewProps> = ({
@@ -63,11 +104,29 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     initialPlayer.favoritePosition || 'meio-campo'
   );
   const [checkInPref, setCheckInPref] = useState<PreferencePosition | 'nao_confirmar'>('linha');
-  const [avatarUrl, setAvatarUrl] = useState(initialPlayer.avatarUrl || AVATAR_PRESETS[0]);
+  const [customAvatarUrl, setCustomAvatarUrl] = useState<string>(initialPlayer.avatarUrl || '');
+  const [previewIndex, setPreviewIndex] = useState<number>(0);
+  const [selectedCategory, setSelectedCategory] = useState<AvatarFilterCategory>('todos');
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (customAvatarUrl) return;
+    const interval = setInterval(() => {
+      setPreviewIndex((prev) => (prev + 1) % PREVIEW_SHOWCASE_PROFILES.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [customAvatarUrl]);
+
+  const currentShowcase = PREVIEW_SHOWCASE_PROFILES[previewIndex];
+  const activeAvatarUrl = customAvatarUrl || currentShowcase.url;
+
+  const filteredAvatars =
+    selectedCategory === 'todos'
+      ? FOOTBALL_AVATARS
+      : FOOTBALL_AVATARS.filter((item) => item.category === selectedCategory);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,7 +136,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
       setIsProcessingImage(true);
       setErrorMessage(null);
       const optimizedDataUrl = await processProfileAvatar(file);
-      setAvatarUrl(optimizedDataUrl);
+      setCustomAvatarUrl(optimizedDataUrl);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erro ao processar a foto.');
     } finally {
@@ -95,6 +154,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
 
     const formattedFullName = techRole ? `${trimmedName} (${techRole})` : trimmedName;
     const finalNickname = nickname.trim() || trimmedName.split(' ')[0];
+    const finalAvatar = customAvatarUrl || FOOTBALL_AVATARS[0].url;
 
     const updatedProfile: PlayerProfile = {
       ...initialPlayer,
@@ -102,7 +162,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
       nickname: finalNickname,
       shirtNumber: Math.max(1, Math.min(99, Number(shirtNumber) || 10)),
       favoritePosition,
-      avatarUrl,
+      avatarUrl: finalAvatar,
     };
 
     confetti({
@@ -123,7 +183,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
 
   return (
     <div className="min-h-screen py-6 px-3 sm:px-6 flex items-center justify-center">
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* COLUNA ESQUERDA (5 COLUNAS): CAMPO DE BOAS-VINDAS + PREVIEW AO VIVO DO CRACHÁ/CARTA */}
         <div
           className="lg:col-span-5 rounded-3xl p-6 sm:p-7 text-white shadow-xl border-2 border-emerald-700/80 relative overflow-hidden flex flex-col justify-between"
@@ -141,7 +201,6 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
             `,
           }}
         >
-          {/* Marcações do Campo no Fundo */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
             viewBox="0 0 400 520"
@@ -165,7 +224,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
               Credenciamento Oficial de Atleta
             </h1>
             <p className="text-xs sm:text-sm text-emerald-100/90 mt-2 leading-relaxed">
-              Configure seu nome, posição, número da camisa e sua foto de perfil. Seus dados compõem a escalação, o placar e o ranking 5 estrelas da pelada SESAP / G Trigueiro.
+              Configure seu nome, posição, número da camisa e sua foto ou emblema. Seus dados compõem a escalação, o placar e o ranking 5 estrelas da pelada SESAP / G Trigueiro.
             </p>
           </div>
 
@@ -175,17 +234,24 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
               <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" /> Preview da Sua Carta
               </span>
-              <span className="text-xs font-black bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full">
-                {initialPlayer.overallRating} OVR
-              </span>
+              <div className="flex items-center gap-1.5">
+                {!customAvatarUrl && (
+                  <span className="text-[10px] font-bold bg-white/15 text-emerald-100 px-2 py-0.5 rounded-full">
+                    {currentShowcase.genderLabel}
+                  </span>
+                )}
+                <span className="text-xs font-black bg-emerald-500 text-slate-950 px-2.5 py-0.5 rounded-full">
+                  {initialPlayer.overallRating} OVR
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
                 <img
-                  src={avatarUrl}
+                  src={activeAvatarUrl}
                   alt={fullName || 'Jogador'}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-emerald-400 shadow-md"
+                  className="w-20 h-20 rounded-full object-cover border-4 border-emerald-400 shadow-md transition-all duration-500 bg-slate-900"
                 />
                 <span className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 text-xs font-black px-2 py-0.5 rounded-full shadow">
                   #{shirtNumber || 10}
@@ -197,10 +263,10 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                   {techRole} • {posLabelMap[favoritePosition]}
                 </span>
                 <h3 className="text-lg font-black text-white truncate">
-                  {fullName.trim() || 'Seu Nome Aqui'}
+                  {fullName.trim() || currentShowcase.sampleName}
                 </h3>
                 <p className="text-xs text-emerald-200 font-bold truncate">
-                  &quot;{nickname.trim() || (fullName.trim() ? fullName.trim().split(' ')[0] : 'Craque')}&quot;
+                  &quot;{nickname.trim() || (fullName.trim() ? fullName.trim().split(' ')[0] : currentShowcase.sampleNick)}&quot;
                 </p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs font-black text-amber-300 bg-white/10 px-2.5 py-0.5 rounded-lg">
@@ -214,6 +280,25 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 </div>
               </div>
             </div>
+
+            {!customAvatarUrl && (
+              <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[10px] text-emerald-200/90">
+                <span>Alternando demonstração para todos os perfis</span>
+                <div className="flex items-center gap-1">
+                  {PREVIEW_SHOWCASE_PROFILES.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setPreviewIndex(idx)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        previewIndex === idx ? 'w-4 bg-amber-400' : 'w-1.5 bg-white/30'
+                      }`}
+                      aria-label={`Ver demonstração ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="relative z-10 text-[11px] text-emerald-100/80 font-medium flex items-center justify-between border-t border-white/15 pt-3">
@@ -223,8 +308,8 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
         </div>
 
         {/* COLUNA DIREITA (7 COLUNAS): FORMULÁRIO COMPLETO DE PRIMEIRO ACESSO */}
-        <div className="lg:col-span-7 arena-card rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="lg:col-span-7 arena-card rounded-3xl p-5 sm:p-7 flex flex-col justify-between">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                 1º Acesso • Cadastro Rápido
@@ -233,69 +318,115 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 Monte seu Perfil de Jogador
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Após concluir, o aplicativo abrirá com todos os jogadores, sorteio de times, placar e ranking.
+                Após concluir, o aplicativo abrirá com os atletas confirmados, sorteio de times, placar e ranking.
               </p>
             </div>
 
-            {/* 1. Upload de Foto Circular + Avatares Rápidos */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-center gap-4">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="relative group cursor-pointer shrink-0"
-              >
-                <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-emerald-600 to-sky-600 shadow-md">
-                  <img
-                    src={avatarUrl}
-                    alt="Sua Foto"
-                    className="w-full h-full rounded-full object-cover bg-white"
-                  />
-                  {isProcessingImage && (
-                    <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center text-[10px] text-white font-bold">
-                      Cortando...
-                    </div>
-                  )}
+            {/* 1. Upload de Foto Circular + Galeria Exclusiva com 50 Avatares de Futebol/Personagens */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative group cursor-pointer shrink-0"
+                >
+                  <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-emerald-600 to-sky-600 shadow-md">
+                    <img
+                      src={activeAvatarUrl}
+                      alt="Sua Foto"
+                      className="w-full h-full rounded-full object-cover bg-slate-900"
+                    />
+                    {isProcessingImage && (
+                      <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center text-[10px] text-white font-bold">
+                        Otimizando...
+                      </div>
+                    )}
+                  </div>
+                  <span className="absolute bottom-0 right-0 p-1.5 bg-emerald-600 text-white rounded-full shadow-md group-hover:scale-110 transition-transform">
+                    <Camera className="w-3.5 h-3.5" />
+                  </span>
                 </div>
-                <span className="absolute bottom-0 right-0 p-1.5 bg-emerald-600 text-white rounded-full shadow-md group-hover:scale-110 transition-transform">
-                  <Camera className="w-3.5 h-3.5" />
-                </span>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-sm transition-all inline-flex items-center gap-1.5"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Enviar Minha Foto</span>
+                    </button>
+                    {customAvatarUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomAvatarUrl('')}
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-[11px] transition-colors"
+                      >
+                        Ver preview automático
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5">
+                    Ou escolha abaixo um dos <strong>50 avatares exclusivos</strong> (mascotes, lendas e ícones do futebol):
+                  </p>
+                </div>
               </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+              {/* Abas de Categorias dos 50 Avatares */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                {AVATAR_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all ${
+                      selectedCategory === cat.id
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
 
-              <div className="flex-1 text-center sm:text-left">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-sm transition-all inline-flex items-center gap-1.5"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>Enviar Minha Foto (Até 100MB)</span>
-                </button>
-                <p className="text-[11px] text-slate-500 mt-1.5">
-                  Ou escolha um avatar rápido abaixo:
-                </p>
-                <div className="flex items-center justify-center sm:justify-start gap-2 mt-1.5">
-                  {AVATAR_PRESETS.map((preset, idx) => (
+              {/* Grade Rolável dos 50 Avatares */}
+              <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 max-h-36 overflow-y-auto p-1.5 bg-white rounded-xl border border-slate-200/80">
+                {filteredAvatars.map((avatar) => {
+                  const isSelected = customAvatarUrl === avatar.url;
+                  return (
                     <button
-                      key={idx}
+                      key={avatar.id}
                       type="button"
-                      onClick={() => setAvatarUrl(preset)}
-                      className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-transform ${
-                        avatarUrl === preset
-                          ? 'border-emerald-600 scale-110 ring-2 ring-emerald-400/40'
-                          : 'border-slate-300 opacity-75 hover:opacity-100'
+                      title={avatar.name}
+                      onClick={() => setCustomAvatarUrl(avatar.url)}
+                      className={`group flex flex-col items-center p-1 rounded-xl transition-all ${
+                        isSelected
+                          ? 'bg-emerald-50 ring-2 ring-emerald-600 scale-105'
+                          : 'hover:bg-slate-50 opacity-90 hover:opacity-100'
                       }`}
                     >
-                      <img src={preset} alt={`Avatar ${idx + 1}`} className="w-full h-full object-cover" />
+                      <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-sm">
+                        <img
+                          src={avatar.url}
+                          alt={avatar.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-600 truncate w-full text-center mt-0.5">
+                        {avatar.name.split(' ')[0]}
+                      </span>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -319,7 +450,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Ex: Gedeon Trigueiro"
+                    placeholder="Seu nome completo"
                     className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-semibold focus:outline-none focus:border-emerald-600"
                   />
                 </div>
@@ -333,7 +464,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                   type="text"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
-                  placeholder="Ex: Ged"
+                  placeholder="Seu apelido da camisa"
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 font-semibold focus:outline-none focus:border-emerald-600"
                 />
               </div>
@@ -457,4 +588,3 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
     </div>
   );
 };
-

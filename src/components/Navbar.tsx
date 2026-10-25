@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { PlayerProfile } from '@/types';
+import { FOOTBALL_AVATARS } from '@/lib/football-avatars';
 import { Home, Trophy, User, HelpCircle } from 'lucide-react';
 import { SoccerBallIcon, PitchIcon, GoalNetIcon } from './FootballIcons';
 
@@ -117,10 +118,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-emerald-600 shadow-sm">
                 <img
-                  src={
-                    currentPlayer.avatarUrl ||
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80'
-                  }
+                  src={currentPlayer.avatarUrl || FOOTBALL_AVATARS[0].url}
                   alt={currentPlayer.fullName}
                   className="w-full h-full object-cover"
                 />

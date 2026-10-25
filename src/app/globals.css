@@ -239,3 +239,13 @@ button:hover .anim-soccer-ball,
 ::-webkit-scrollbar-thumb:hover {
   background: #16a34a;
 }
+
+/* Oculta widgets/barras flutuantes de preview do Netlify ("Powered by Netlify") */
+div[data-netlify-deploy-drawer],
+iframe[src*="app.netlify.com"],
+#netlify-identity-widget {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
