@@ -69,8 +69,12 @@ export const StarRating: React.FC<StarRatingProps> = ({
           </button>
         );
       })}
-      <span className="ml-1.5 text-xs font-black text-amber-600">
-        {rating.toFixed(1)}
+      <span
+        className={`ml-1.5 text-xs font-black ${
+          rating > 0 ? 'text-amber-600' : 'text-slate-400'
+        }`}
+      >
+        {rating > 0 ? rating.toFixed(1) : '0.0'}
       </span>
     </div>
   );

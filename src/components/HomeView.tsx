@@ -50,11 +50,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const isCheckedIn = match.presences.some((p) => p.playerId === currentPlayer.id);
   const totalSeasonGoals = allPlayers.reduce((acc, p) => acc + p.goals, 0);
 
-  const sortedByStars = [...allPlayers].sort((a, b) => b.starsRating - a.starsRating);
+  const ratedPlayers = allPlayers.filter(
+    (p) => p.starsRating > 0 || p.goals > 0 || p.assists > 0 || p.matchesPlayed > 0
+  );
+  const sortedByStars = [...ratedPlayers].sort((a, b) => b.starsRating - a.starsRating);
   const bestGoalkeeper = sortedByStars.find((p) => p.favoritePosition === 'goleiro');
   const bestDefender = sortedByStars.find((p) => p.favoritePosition === 'zagueiro');
   const bestMidfielder = sortedByStars.find((p) => p.favoritePosition === 'meio-campo');
-  const topScorer = [...allPlayers].sort((a, b) => b.goals - a.goals)[0];
+  const topScorer = [...allPlayers].filter((p) => p.goals > 0).sort((a, b) => b.goals - a.goals)[0];
 
   const handleWhatsApp = () => {
     shareViaWhatsApp(match, allPlayers);
@@ -179,10 +182,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 {currentPlayer.fullName}
               </h3>
               <p className="text-xs text-slate-500 capitalize font-semibold">
-                {currentPlayer.favoritePosition} • {currentPlayer.overallRating} OVR
+                {currentPlayer.favoritePosition} •{' '}
+                {currentPlayer.overallRating > 0 ? `${currentPlayer.overallRating} OVR` : 'Sem OVR'}
               </p>
               <span className="inline-flex items-center gap-1 text-xs font-black text-amber-600 mt-1">
-                ⭐ {currentPlayer.starsRating.toFixed(1)} Estrelas
+                {currentPlayer.starsRating > 0
+                  ? `⭐ ${currentPlayer.starsRating.toFixed(1)} Estrelas`
+                  : '☆ 0.0 (Sem jogos avaliados)'}
               </span>
             </div>
           </div>
@@ -276,10 +282,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="text-lg font-black text-slate-900 truncate">
             {sortedByStars[0]
               ? sortedByStars[0].fullName.replace(/\s*\(.*?\)\s*/g, '')
-              : 'Aguardando'}
+              : 'Aguardando Jogo'}
           </div>
           <p className="text-[11px] text-amber-700 font-bold mt-1">
-            ⭐ {sortedByStars[0] ? sortedByStars[0].starsRating.toFixed(1) : '5.0'} de 5.0
+            {sortedByStars[0] && sortedByStars[0].starsRating > 0
+              ? `⭐ ${sortedByStars[0].starsRating.toFixed(1)} de 5.0`
+              : '☆ 0.0 • Sem avaliações'}
           </p>
         </div>
       </div>

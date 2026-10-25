@@ -164,21 +164,23 @@ export function generateMatchPDF(match: Match, allPlayers: PlayerProfile[]) {
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(30, 41, 59);
 
-  const sortedByStars = [...allPlayers].sort((a, b) => b.starsRating - a.starsRating);
+  const sortedByStars = [...allPlayers]
+    .filter((p) => p.starsRating > 0)
+    .sort((a, b) => b.starsRating - a.starsRating);
   const bestGk = sortedByStars.find((p) => p.favoritePosition === 'goleiro');
   const bestDef = sortedByStars.find((p) => p.favoritePosition === 'zagueiro');
   const bestMid = sortedByStars.find((p) => p.favoritePosition === 'meio-campo');
   const bestAtt = sortedByStars.find((p) => p.favoritePosition === 'atacante');
 
-  doc.text(`• Craque Geral (MVP): ${sortedByStars[0]?.fullName || '-'} (${sortedByStars[0]?.starsRating.toFixed(1)} Estrelas)`, 18, nextY);
+  doc.text(`• Craque Geral (MVP): ${sortedByStars[0]?.fullName || 'Sem avaliação'} (${sortedByStars[0] ? sortedByStars[0].starsRating.toFixed(1) + ' Estrelas' : '0.0'})`, 18, nextY);
   nextY += 6;
-  doc.text(`• Melhor Goleiro: ${bestGk?.fullName || '-'} (${bestGk?.starsRating.toFixed(1)} Estrelas)`, 18, nextY);
+  doc.text(`• Melhor Goleiro: ${bestGk?.fullName || 'Sem avaliação'} (${bestGk ? bestGk.starsRating.toFixed(1) + ' Estrelas' : '0.0'})`, 18, nextY);
   nextY += 6;
-  doc.text(`• Melhor Zagueiro: ${bestDef?.fullName || '-'} (${bestDef?.starsRating.toFixed(1)} Estrelas)`, 18, nextY);
+  doc.text(`• Melhor Zagueiro: ${bestDef?.fullName || 'Sem avaliação'} (${bestDef ? bestDef.starsRating.toFixed(1) + ' Estrelas' : '0.0'})`, 18, nextY);
   nextY += 6;
-  doc.text(`• Melhor Meio-Campo: ${bestMid?.fullName || '-'} (${bestMid?.starsRating.toFixed(1)} Estrelas)`, 18, nextY);
+  doc.text(`• Melhor Meio-Campo: ${bestMid?.fullName || 'Sem avaliação'} (${bestMid ? bestMid.starsRating.toFixed(1) + ' Estrelas' : '0.0'})`, 18, nextY);
   nextY += 6;
-  doc.text(`• Melhor Atacante: ${bestAtt?.fullName || '-'} (${bestAtt?.starsRating.toFixed(1)} Estrelas)`, 18, nextY);
+  doc.text(`• Melhor Atacante: ${bestAtt?.fullName || 'Sem avaliação'} (${bestAtt ? bestAtt.starsRating.toFixed(1) + ' Estrelas' : '0.0'})`, 18, nextY);
 
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
@@ -326,7 +328,8 @@ export function generateWhatsAppSummary(match: Match, allPlayers?: PlayerProfile
 
   text += `──────────────────────\n`;
   if (allPlayers && allPlayers.length > 0) {
-    const top = [...allPlayers].sort((a, b) => b.starsRating - a.starsRating)[0];
+    const rated = allPlayers.filter((p) => p.starsRating > 0);
+    const top = [...rated].sort((a, b) => b.starsRating - a.starsRating)[0];
     if (top) {
       text += `★ *Líder do Ranking:* ${cleanPlayerName(top.fullName)} (${top.starsRating.toFixed(1)} ★)\n`;
     }

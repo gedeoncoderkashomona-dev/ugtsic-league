@@ -258,7 +258,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 <span>Preview da Sua Carta</span>
               </span>
               <span className="text-xs font-black bg-emerald-500 text-slate-950 px-3 py-1 rounded-full whitespace-nowrap shrink-0 shadow-sm">
-                {initialPlayer.overallRating} OVR
+                {initialPlayer.overallRating > 0 ? `${initialPlayer.overallRating} OVR` : 'ESTREANTE'}
               </span>
             </div>
 
@@ -286,7 +286,9 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
                 </p>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <span className="text-xs font-black text-amber-300 bg-white/10 px-2.5 py-0.5 rounded-lg whitespace-nowrap shrink-0">
-                    ★ {initialPlayer.starsRating.toFixed(1)}
+                    {initialPlayer.starsRating > 0
+                      ? `★ ${initialPlayer.starsRating.toFixed(1)}`
+                      : '☆ 0.0 (Pós-Jogo)'}
                   </span>
                   <span className="text-[11px] text-emerald-100 font-semibold whitespace-nowrap">
                     {checkInPref === 'nao_confirmar'

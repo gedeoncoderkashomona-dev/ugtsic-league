@@ -490,7 +490,9 @@ export const MatchDrawView: React.FC<MatchDrawViewProps> = ({
                           </div>
                         </div>
                         <span className="text-[11px] font-black text-blue-800 bg-blue-100/80 px-2 py-0.5 rounded-lg shrink-0">
-                          ★ {presence.player.starsRating.toFixed(1)}
+                          {presence.player.starsRating > 0
+                            ? `★ ${presence.player.starsRating.toFixed(1)}`
+                            : '☆ 0.0'}
                         </span>
                       </div>
                     );
@@ -569,7 +571,9 @@ export const MatchDrawView: React.FC<MatchDrawViewProps> = ({
                           </div>
                         </div>
                         <span className="text-[11px] font-black text-red-800 bg-red-100/80 px-2 py-0.5 rounded-lg shrink-0">
-                          ★ {presence.player.starsRating.toFixed(1)}
+                          {presence.player.starsRating > 0
+                            ? `★ ${presence.player.starsRating.toFixed(1)}`
+                            : '☆ 0.0'}
                         </span>
                       </div>
                     );
@@ -750,11 +754,11 @@ export const MatchDrawView: React.FC<MatchDrawViewProps> = ({
                     {/* Direita: Badge de Estrelas + Overall */}
                     <div className="flex flex-col items-end shrink-0">
                       <span className="inline-flex items-center gap-1 text-xs font-black text-amber-900 bg-gradient-to-r from-amber-100 to-amber-50 border border-amber-300/80 px-2.5 py-1 rounded-xl shadow-sm">
-                        <span className="text-amber-500">★</span>
-                        <span>{p.player.starsRating.toFixed(1)}</span>
+                        <span className="text-amber-500">{p.player.starsRating > 0 ? '★' : '☆'}</span>
+                        <span>{p.player.starsRating > 0 ? p.player.starsRating.toFixed(1) : '0.0'}</span>
                       </span>
                       <span className="text-[10px] font-extrabold text-slate-400 mt-1">
-                        {p.player.overallRating} OVR
+                        {p.player.overallRating > 0 ? `${p.player.overallRating} OVR` : 'Sem OVR'}
                       </span>
                     </div>
                   </div>

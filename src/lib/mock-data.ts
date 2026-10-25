@@ -7,8 +7,8 @@ export const EMPTY_USER_TEMPLATE: PlayerProfile = {
   shirtNumber: 10,
   favoritePosition: 'meio-campo',
   avatarUrl: '',
-  overallRating: 80,
-  starsRating: 5.0,
+  overallRating: 0,
+  starsRating: 0,
   matchesPlayed: 0,
   victories: 0,
   goals: 0,
@@ -31,4 +31,12 @@ export const INITIAL_MATCH: Match = {
   scoreTeamB: 0,
   presences: [],
   events: [],
+  timer: {
+    period: 'nao_iniciado',
+    halfDurationMinutes: 25,
+    elapsedSeconds: 0,
+    stoppageSeconds: 0,
+    isRunning: false,
+    isPaused: false,
+  },
 };

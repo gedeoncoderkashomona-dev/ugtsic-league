@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { PlayerProfile, Position } from '@/types';
-import { StarRating } from './StarRating';
+import { FOOTBALL_AVATARS } from '@/lib/football-avatars';
 import { loadUIState, saveUIState } from '@/lib/supabase-service';
-import { Trophy, Star, FileDown, Award } from 'lucide-react';
+import { Trophy, FileDown, Award, Star, ArrowUpDown } from 'lucide-react';
 import {
   SoccerBallIcon,
   GlovesIcon,
@@ -46,12 +46,19 @@ export const RankingView: React.FC<RankingViewProps> = ({
     saveUIState({ rankingSortBy: s });
   };
 
-  // Cálculo automático dos 6 Troféus Oficiais solicitados
-  const byStars = [...players].sort(
-    (a, b) => b.starsRating - a.starsRating || b.overallRating - a.overallRating
+  const evaluatedPlayers = players.filter(
+    (p) => p.starsRating > 0 || p.goals > 0 || p.assists > 0 || p.matchesPlayed > 0
   );
-  const byGoals = [...players].sort((a, b) => b.goals - a.goals);
-  const byAssists = [...players].sort((a, b) => b.assists - a.assists);
+
+  const byStars = [...evaluatedPlayers]
+    .filter((p) => p.starsRating > 0)
+    .sort((a, b) => b.starsRating - a.starsRating || b.goals - a.goals);
+  const byGoals = [...evaluatedPlayers]
+    .filter((p) => p.goals > 0)
+    .sort((a, b) => b.goals - a.goals || b.starsRating - a.starsRating);
+  const byAssists = [...evaluatedPlayers]
+    .filter((p) => p.assists > 0)
+    .sort((a, b) => b.assists - a.assists || b.starsRating - a.starsRating);
 
   const mvpLeader = byStars[0];
   const topScorer = byGoals[0];
@@ -63,308 +70,201 @@ export const RankingView: React.FC<RankingViewProps> = ({
   const awards = [
     {
       title: 'Craque Geral (MVP)',
-      subtitle: 'Maior média de estrelas',
       player: mvpLeader,
-      highlight: `⭐ ${mvpLeader?.starsRating.toFixed(1)} / 5.0`,
-      accent: 'border-t-amber-400',
-      badge: 'bg-amber-100 text-amber-900',
+      statLabel: mvpLeader ? `${mvpLeader.starsRating.toFixed(1)} ★` : 'Em disputa',
       Icon: Trophy,
     },
     {
-      title: 'Artilheiro da Liga',
-      subtitle: 'Líder em gols marcados',
+      title: 'Artilheiro',
       player: topScorer,
-      highlight: `⚽ ${topScorer?.goals} Gols`,
-      accent: 'border-t-emerald-500',
-      badge: 'bg-emerald-100 text-emerald-900',
+      statLabel: topScorer ? `${topScorer.goals} Gols` : 'Em disputa',
       Icon: SoccerBallIcon,
     },
     {
-      title: 'Garçom de Ouro',
-      subtitle: 'Líder em assistências',
+      title: 'Líder de Assistências',
       player: topPlaymaker,
-      highlight: `👟 ${topPlaymaker?.assists} Assist.`,
-      accent: 'border-t-sky-500',
-      badge: 'bg-sky-100 text-sky-900',
+      statLabel: topPlaymaker ? `${topPlaymaker.assists} Assist.` : 'Em disputa',
       Icon: CleatsIcon,
     },
     {
       title: 'Melhor Goleiro',
-      subtitle: 'Luva de Ouro UGTSIC',
       player: bestGoalkeeper,
-      highlight: `⭐ ${bestGoalkeeper?.starsRating.toFixed(1)} (${bestGoalkeeper?.overallRating} OVR)`,
-      accent: 'border-t-amber-500',
-      badge: 'bg-amber-50 text-amber-800',
+      statLabel: bestGoalkeeper ? `${bestGoalkeeper.starsRating.toFixed(1)} ★` : 'Em disputa',
       Icon: GlovesIcon,
     },
     {
       title: 'Melhor Zagueiro',
-      subtitle: 'Xerife da Defesa',
       player: bestDefender,
-      highlight: `⭐ ${bestDefender?.starsRating.toFixed(1)} (${bestDefender?.overallRating} OVR)`,
-      accent: 'border-t-teal-600',
-      badge: 'bg-teal-50 text-teal-800',
+      statLabel: bestDefender ? `${bestDefender.starsRating.toFixed(1)} ★` : 'Em disputa',
       Icon: JerseyIcon,
     },
     {
       title: 'Melhor Meio-Campo',
-      subtitle: 'Maestro da Rodada',
       player: bestMidfielder,
-      highlight: `⭐ ${bestMidfielder?.starsRating.toFixed(1)} (${bestMidfielder?.overallRating} OVR)`,
-      accent: 'border-t-indigo-600',
-      badge: 'bg-indigo-50 text-indigo-800',
+      statLabel: bestMidfielder ? `${bestMidfielder.starsRating.toFixed(1)} ★` : 'Em disputa',
       Icon: PitchIcon,
     },
   ];
 
-  // Filtragem e ordenação da tabela principal
   const filteredPlayers = players
     .filter((p) => (posFilter === 'todos' ? true : p.favoritePosition === posFilter))
     .sort((a, b) => {
       if (sortBy === 'gols') return b.goals - a.goals || b.starsRating - a.starsRating;
       if (sortBy === 'assistencias') return b.assists - a.assists || b.starsRating - a.starsRating;
-      return b.starsRating - a.starsRating || b.overallRating - a.overallRating;
+      return b.starsRating - a.starsRating || b.goals - a.goals || b.assists - a.assists;
     });
 
-  const posBadge: Record<Position, { label: string; cls: string }> = {
-    goleiro: { label: 'GOL', cls: 'bg-amber-100 text-amber-800 border-amber-200' },
-    zagueiro: { label: 'ZAG', cls: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-    'meio-campo': { label: 'MEI', cls: 'bg-sky-100 text-sky-800 border-sky-200' },
-    atacante: { label: 'ATA', cls: 'bg-rose-100 text-rose-800 border-rose-200' },
+  const posMap: Record<Position, { short: string; name: string; color: string }> = {
+    goleiro: { short: 'GOL', name: 'Goleiro', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+    zagueiro: { short: 'ZAG', name: 'Zagueiro', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+    'meio-campo': { short: 'MEI', name: 'Meio-Campo', color: 'text-sky-700 bg-sky-50 border-sky-200' },
+    atacante: { short: 'ATA', name: 'Atacante', color: 'text-rose-700 bg-rose-50 border-rose-200' },
   };
 
   const totalGoals = players.reduce((acc, p) => acc + p.goals, 0);
   const totalAssists = players.reduce((acc, p) => acc + p.assists, 0);
-  const avgStars = (
-    players.reduce((acc, p) => acc + p.starsRating, 0) / (players.length || 1)
-  ).toFixed(1);
+  const ratedOnly = players.filter((p) => p.starsRating > 0);
+  const avgStars =
+    ratedOnly.length > 0
+      ? (ratedOnly.reduce((acc, p) => acc + p.starsRating, 0) / ratedOnly.length).toFixed(1)
+      : '0.0';
 
   return (
     <div className="space-y-6">
-      {/* TOPO EM BENTO GRID PROPORCIONAL (8 COLUNAS CAMPO/PÓDIO + 4 COLUNAS PAINEL DA TEMPORADA) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* Card Esquerdo (8 Colunas): Campo de Futebol + Top 3 Pódio dos Craques */}
-        <div
-          className="lg:col-span-8 rounded-3xl p-6 sm:p-7 text-white shadow-lg border-2 border-emerald-700/80 relative overflow-hidden flex flex-col justify-between"
-          style={{
-            backgroundColor: '#14532d',
-            backgroundImage: `
-              repeating-linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0.04) 0px,
-                rgba(255, 255, 255, 0.04) 44px,
-                transparent 44px,
-                transparent 88px
-              ),
-              linear-gradient(135deg, #14532d 0%, #15803d 55%, #0f4c5c 100%)
-            `,
-          }}
-        >
-          {/* Marcações de Campo de Futebol Proporcionais (sem esticar o círculo central) */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
-            viewBox="0 0 800 360"
-            preserveAspectRatio="xMidYMid slice"
-          >
-            <rect x="20" y="20" width="760" height="320" rx="14" fill="none" stroke="#ffffff" strokeWidth="3" />
-            <line x1="400" y1="20" x2="400" y2="340" stroke="#ffffff" strokeWidth="3" />
-            <circle cx="400" cy="180" r="56" fill="none" stroke="#ffffff" strokeWidth="3" />
-            <circle cx="400" cy="180" r="5" fill="#ffffff" />
-            <rect x="20" y="95" width="95" height="170" fill="none" stroke="#ffffff" strokeWidth="3" />
-            <rect x="685" y="95" width="95" height="170" fill="none" stroke="#ffffff" strokeWidth="3" />
-          </svg>
-
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-300 mb-3">
-              <Trophy className="w-4 h-4 text-amber-400 anim-trophy shrink-0" />
-              <span>HALL DA FAMA • RANKING 5 ESTRELAS UGTSIC</span>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
-              Destaques por Função & Classificação
-            </h2>
-            <p className="text-xs sm:text-sm text-emerald-100 font-medium mt-1">
-              Toque em qualquer jogador abaixo para ver a carta completa ou registrar seu voto de 1 a 5 estrelas.
-            </p>
-          </div>
-
-          {/* Mini Pódio Integrado dos Top 3 Craques da Liga */}
-          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5 pt-4 border-t border-white/15">
-            {byStars.slice(0, 3).map((p, idx) => {
-              const medals = [
-                { label: '1º Craque', badge: 'bg-amber-400 text-slate-950', ring: 'border-amber-300' },
-                { label: '2º Lugar', badge: 'bg-slate-200 text-slate-900', ring: 'border-slate-200' },
-                { label: '3º Lugar', badge: 'bg-amber-600 text-white', ring: 'border-amber-500' },
-              ][idx];
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => onSelectPlayer(p)}
-                  className="bg-black/30 hover:bg-black/45 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 cursor-pointer transition-all group"
-                >
-                  <div className="relative shrink-0">
-                    <img
-                      src={p.avatarUrl}
-                      alt={p.fullName}
-                      className={`w-12 h-12 rounded-full object-cover border-2 ${medals.ring} group-hover:scale-105 transition-transform`}
-                    />
-                    <span
-                      className={`absolute -bottom-1 -right-1 text-[9px] font-black px-1.5 py-0.5 rounded-full ${medals.badge} shadow`}
-                    >
-                      {idx + 1}º
-                    </span>
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200 block">
-                      {medals.label}
-                    </span>
-                    <h4 className="text-xs sm:text-sm font-black text-white truncate">
-                      {p.fullName.replace(/\s*\(.*?\)\s*/g, '')}
-                    </h4>
-                    <span className="text-xs font-bold text-amber-300 flex items-center gap-1 mt-0.5">
-                      ★ {p.starsRating.toFixed(1)}{' '}
-                      <span className="text-[10px] text-emerald-100/80 font-semibold">
-                        ({p.goals}G • {p.assists}A)
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card Direito (4 Colunas): Resumo da Temporada + Botão Planilha PDF */}
-        <div className="lg:col-span-4 arena-card rounded-3xl p-6 flex flex-col justify-between">
+      {/* CABEÇALHO SÓBRIO DA TABELA DE CLASSIFICAÇÃO E ESTATÍSTICAS */}
+      <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 border border-slate-800 shadow-md">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5">
-                <SoccerBallIcon className="w-3.5 h-3.5 text-emerald-600" />
-                Temporada 2026
-              </span>
-              <span className="text-xs font-bold text-slate-400">
-                {players.length} Atletas
-              </span>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400">
+              <Trophy className="w-4 h-4" />
+              <span>Classificação Oficial • UGTSIC League</span>
             </div>
-
-            <h3 className="text-base font-black text-slate-900">
-              Estatísticas Oficiais da Liga
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Consolidado geral das peladas da UGTSIC / SESAP
+            <h1 className="text-xl sm:text-2xl font-black text-white mt-1 tracking-tight">
+              Tabela Geral de Desempenho & Artilharia
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Pontuação zerada no cadastro. As notas e estatísticas são contabilizadas apenas com as partidas realizadas.
             </p>
-
-            <div className="grid grid-cols-3 gap-2.5 my-4">
-              <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-center">
-                <span className="text-lg font-black text-emerald-700 block">{totalGoals}</span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Gols</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-sky-50/70 border border-sky-100 text-center">
-                <span className="text-lg font-black text-sky-700 block">{totalAssists}</span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Assist.</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-100 text-center">
-                <span className="text-lg font-black text-amber-600 block">★ {avgStars}</span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase">Média</span>
-              </div>
-            </div>
           </div>
 
-          <button
-            onClick={() => generateRankingPDF(players)}
-            className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-          >
-            <FileDown className="w-4 h-4 animate-bounce" />
-            <span>Baixar Planilha Completa (PDF)</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="grid grid-cols-4 gap-2 bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center min-w-[260px]">
+              <div className="px-2">
+                <span className="text-sm sm:text-base font-mono font-black text-white block">
+                  {players.length}
+                </span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Atletas</span>
+              </div>
+              <div className="px-2 border-l border-slate-700">
+                <span className="text-sm sm:text-base font-mono font-black text-emerald-400 block">
+                  {totalGoals}
+                </span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Gols</span>
+              </div>
+              <div className="px-2 border-l border-slate-700">
+                <span className="text-sm sm:text-base font-mono font-black text-sky-400 block">
+                  {totalAssists}
+                </span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Assist.</span>
+              </div>
+              <div className="px-2 border-l border-slate-700">
+                <span className="text-sm sm:text-base font-mono font-black text-amber-400 block">
+                  {avgStars}
+                </span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Média ★</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => generateRankingPDF(players)}
+              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-2 shadow-sm shrink-0"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Exportar PDF</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* SEÇÃO 1: OS 6 TROFÉUS DE DESTAQUE DA TEMPORADA (MELHOR DE CADA POSIÇÃO + ARTILHEIRO + GARÇOM) */}
+      {/* QUADRO DE LÍDERES POR CATEGORIA (SÓ EXIBE QUEM JÁ TEM PONTUAÇÃO REAL) */}
       <div>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <Award className="w-4 h-4 text-amber-500 anim-trophy" />
-            <span>Os 6 Troféus Oficiais da Liga</span>
-          </h3>
-          <span className="text-xs text-slate-500 font-medium">
-            Toque em qualquer card para ver detalhes ou votar
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <h2 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <Award className="w-4 h-4 text-emerald-700" />
+            <span>Líderes da Temporada por Função</span>
+          </h2>
+          <span className="text-[11px] text-slate-500">
+            Atualizado conforme súmula e avaliação pós-jogo
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           {awards.map((item, idx) => {
             const p = item.player;
             const Icon = item.Icon;
-            if (!p) return null;
+            const cleanName = p ? p.fullName.replace(/\s*\(.*?\)\s*/g, '') : '';
+
             return (
               <div
                 key={idx}
-                onClick={() => onSelectPlayer(p)}
-                className={`arena-card rounded-2xl p-4 border-t-4 ${item.accent} hover:border-emerald-500 transition-all cursor-pointer flex items-center justify-between gap-3`}
+                onClick={() => p && onSelectPlayer(p)}
+                className={`bg-white rounded-xl p-3 border border-slate-200 flex flex-col justify-between transition-colors ${
+                  p ? 'cursor-pointer hover:border-slate-400' : 'opacity-75'
+                }`}
               >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="relative shrink-0">
-                    <img
-                      src={p.avatarUrl}
-                      alt={p.fullName}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-slate-200 shadow-sm"
-                    />
-                    <span className="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
-                      #{p.shirtNumber}
-                    </span>
-                  </div>
-
-                  <div className="min-w-0">
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${item.badge} inline-flex items-center gap-1`}>
-                      <Icon className="w-3 h-3" />
-                      {item.title}
-                    </span>
-                    <h4 className="text-sm font-black text-slate-900 truncate mt-1">
-                      {p.fullName.replace(/\s*\(.*?\)\s*/g, '')}
-                    </h4>
-                    <span className="text-xs font-bold text-slate-600 block mt-0.5">
-                      {item.highlight}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between gap-1 mb-2">
+                  <span className="text-[10px] font-bold uppercase text-slate-500 truncate">
+                    {item.title}
+                  </span>
+                  <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenVoting(p);
-                  }}
-                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-emerald-600 hover:text-white text-slate-700 font-bold text-xs transition-colors shrink-0"
-                >
-                  ⭐ Votar
-                </button>
+                {p ? (
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src={p.avatarUrl || FOOTBALL_AVATARS[0].url}
+                      alt={cleanName}
+                      className="w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <h4 className="text-xs font-black text-slate-900 truncate">{cleanName}</h4>
+                      <span className="text-[11px] font-mono font-bold text-emerald-700 block">
+                        {item.statLabel}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-1.5">
+                    <span className="text-xs font-bold text-slate-400 block">Sem líder</span>
+                    <span className="text-[10px] text-slate-400">Aguardando partida</span>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* SEÇÃO 2: TABELA COMPLETA DE CLASSIFICAÇÃO (ESTILO SOFASCORE / PREMIER LEAGUE) */}
-      <div className="arena-card rounded-3xl overflow-hidden">
-        {/* Barra de Filtros da Tabela */}
-        <div className="p-4 sm:px-6 border-b border-slate-200 bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Filtro por Posição */}
-          <div className="flex flex-wrap items-center gap-1.5">
+      {/* TABELA OFICIAL DE CLASSIFICAÇÃO (DESIGN EDITORIAL ESPORTIVO LIMPO E TABULAR) */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {/* Barra de Filtros e Ordenação */}
+        <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1">
             {(
               [
                 { id: 'todos', label: 'Todos' },
-                { id: 'goleiro', label: '🧤 Goleiros' },
-                { id: 'zagueiro', label: '🛡️ Zagueiros' },
-                { id: 'meio-campo', label: '🪄 Meio-Campo' },
-                { id: 'atacante', label: '⚡ Atacantes' },
+                { id: 'goleiro', label: 'Goleiros' },
+                { id: 'zagueiro', label: 'Zagueiros' },
+                { id: 'meio-campo', label: 'Meio-Campo' },
+                { id: 'atacante', label: 'Atacantes' },
               ] as { id: FilterPos; label: string }[]
             ).map((f) => (
               <button
                 key={f.id}
                 onClick={() => setPosFilter(f.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   posFilter === f.id
-                    ? 'bg-emerald-600 text-white shadow-sm'
+                    ? 'bg-slate-900 text-white'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -373,20 +273,20 @@ export const RankingView: React.FC<RankingViewProps> = ({
             ))}
           </div>
 
-          {/* Ordenar por */}
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-500 font-bold mr-1">Ordenar:</span>
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-500 font-semibold mr-1">Critério:</span>
             {[
-              { id: 'estrelas', label: '⭐ Estrelas' },
-              { id: 'gols', label: '⚽ Gols' },
-              { id: 'assistencias', label: '👟 Assist.' },
+              { id: 'estrelas', label: 'Nota (★)' },
+              { id: 'gols', label: 'Gols (G)' },
+              { id: 'assistencias', label: 'Assist. (A)' },
             ].map((s) => (
               <button
                 key={s.id}
-                onClick={() => setSortBy(s.id as any)}
-                className={`px-2.5 py-1.5 rounded-lg font-bold transition-all ${
+                onClick={() => setSortBy(s.id as 'estrelas' | 'gols' | 'assistencias')}
+                className={`px-2.5 py-1.5 rounded-lg font-bold transition-colors ${
                   sortBy === s.id
-                    ? 'bg-slate-900 text-white'
+                    ? 'bg-emerald-700 text-white'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
                 }`}
               >
@@ -396,108 +296,160 @@ export const RankingView: React.FC<RankingViewProps> = ({
           </div>
         </div>
 
-        {/* Cabeçalho das Colunas (Desktop) */}
-        <div className="hidden md:grid md:grid-cols-12 px-6 py-3 bg-slate-100/80 border-b border-slate-200 text-[11px] font-black text-slate-500 uppercase tracking-wider items-center">
-          <div className="col-span-1">#</div>
-          <div className="col-span-4">Jogador</div>
-          <div className="col-span-2 text-center">Função</div>
-          <div className="col-span-1 text-center">Gols</div>
-          <div className="col-span-1 text-center">Assist.</div>
-          <div className="col-span-2 text-center">Média (5★)</div>
-          <div className="col-span-1 text-right">Ação</div>
-        </div>
+        {filteredPlayers.length === 0 ? (
+          <div className="py-14 px-4 text-center">
+            <p className="text-sm font-bold text-slate-700">Nenhum atleta encontrado nesta posição</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Assim que os integrantes se cadastrarem, a listagem oficial aparecerá aqui.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-100/80 text-[11px] font-black text-slate-500 uppercase tracking-wider">
+                  <th className="py-3 pl-4 pr-2 w-12 text-center">POS</th>
+                  <th className="py-3 px-3">ATLETA</th>
+                  <th className="py-3 px-2 text-center hidden sm:table-cell">FUNÇÃO</th>
+                  <th className="py-3 px-2 text-center w-14" title="Jogos Disputados">J</th>
+                  <th className="py-3 px-2 text-center w-14" title="Vitórias">V</th>
+                  <th className="py-3 px-2 text-center w-14" title="Gols Marcados">G</th>
+                  <th className="py-3 px-2 text-center w-14" title="Assistências">A</th>
+                  <th className="py-3 px-2 text-center w-16 hidden md:table-cell" title="Overall Rating">OVR</th>
+                  <th className="py-3 px-3 text-center w-28">NOTA</th>
+                  <th className="py-3 pl-2 pr-4 text-right w-24">AVALIAÇÃO</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 text-sm">
+                {filteredPlayers.map((p, index) => {
+                  const posInfo = posMap[p.favoritePosition] || posMap['meio-campo'];
+                  const roleMatch = p.fullName.match(/\((.*?)\)/);
+                  const sectorRole = roleMatch ? roleMatch[1] : '';
+                  const cleanName = p.fullName.replace(/\s*\(.*?\)\s*/g, '');
+                  const hasStats =
+                    p.starsRating > 0 || p.goals > 0 || p.assists > 0 || p.matchesPlayed > 0;
 
-        {/* Linhas dos Jogadores */}
-        <div className="divide-y divide-slate-100">
-          {filteredPlayers.map((p, index) => {
-            const badge = posBadge[p.favoritePosition] || posBadge['meio-campo'];
-            return (
-              <div
-                key={p.id}
-                onClick={() => onSelectPlayer(p)}
-                className="p-4 sm:px-6 hover:bg-emerald-50/30 transition-colors grid grid-cols-12 items-center gap-2 cursor-pointer"
-              >
-                {/* Coluna 1: Posição no Ranking */}
-                <div className="col-span-2 sm:col-span-1">
-                  <span
-                    className={`w-7 h-7 rounded-lg text-xs font-black inline-flex items-center justify-center ${
-                      index === 0
-                        ? 'bg-amber-400 text-slate-950 shadow-sm'
-                        : index === 1
-                        ? 'bg-slate-300 text-slate-900'
-                        : index === 2
-                        ? 'bg-amber-700 text-white'
-                        : 'bg-slate-100 text-slate-600'
-                    }`}
-                  >
-                    {index + 1}º
-                  </span>
-                </div>
+                  const rankStyle =
+                    hasStats && index === 0
+                      ? 'bg-amber-400 text-slate-950 font-black'
+                      : hasStats && index === 1
+                      ? 'bg-slate-300 text-slate-900 font-black'
+                      : hasStats && index === 2
+                      ? 'bg-amber-700 text-white font-black'
+                      : 'text-slate-500 font-mono font-bold';
 
-                {/* Coluna 2: Foto + Nome */}
-                <div className="col-span-6 sm:col-span-5 md:col-span-4 flex items-center gap-2.5 sm:gap-3 min-w-0">
-                  <img
-                    src={p.avatarUrl}
-                    alt={p.fullName}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate">
-                      {p.fullName.replace(/\s*\(.*?\)\s*/g, '')}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 font-medium truncate">
-                      &quot;{p.nickname}&quot; • #{p.shirtNumber}
-                      <span className="md:hidden ml-1.5 text-emerald-700 font-bold">
-                        • {p.goals}G {p.assists}A
-                      </span>
-                    </p>
-                  </div>
-                </div>
+                  return (
+                    <tr
+                      key={p.id}
+                      onClick={() => onSelectPlayer(p)}
+                      className="hover:bg-slate-50/90 transition-colors cursor-pointer group"
+                    >
+                      {/* Coluna 1: Posição */}
+                      <td className="py-3 pl-4 pr-2 text-center">
+                        <span
+                          className={`w-6 h-6 rounded text-xs inline-flex items-center justify-center ${rankStyle}`}
+                        >
+                          {hasStats ? `${index + 1}` : '-'}
+                        </span>
+                      </td>
 
-                {/* Coluna 3: Função (Desktop) */}
-                <div className="hidden md:flex md:col-span-2 justify-center">
-                  <span
-                    className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${badge.cls}`}
-                  >
-                    {badge.label} • {p.overallRating} OVR
-                  </span>
-                </div>
+                      {/* Coluna 2: Atleta */}
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-3 min-w-[170px]">
+                          <img
+                            src={p.avatarUrl || FOOTBALL_AVATARS[0].url}
+                            alt={cleanName}
+                            className="w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-slate-900 truncate text-xs sm:text-sm">
+                                {cleanName}
+                              </span>
+                              <span className="text-[11px] font-mono font-bold text-slate-400">
+                                #{p.shirtNumber}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                              <span>&quot;{p.nickname}&quot;</span>
+                              {sectorRole && (
+                                <span className="text-slate-400 hidden md:inline">• {sectorRole}</span>
+                              )}
+                              <span
+                                className={`sm:hidden text-[9px] font-bold px-1.5 py-0.2 rounded border ${posInfo.color}`}
+                              >
+                                {posInfo.short}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                {/* Coluna 4: Gols (Desktop) */}
-                <div className="hidden md:block md:col-span-1 text-center text-sm font-black text-emerald-700">
-                  {p.goals}
-                </div>
+                      {/* Coluna 3: Função */}
+                      <td className="py-3 px-2 text-center hidden sm:table-cell">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border ${posInfo.color}`}
+                        >
+                          {posInfo.short}
+                        </span>
+                      </td>
 
-                {/* Coluna 5: Assistências (Desktop) */}
-                <div className="hidden md:block md:col-span-1 text-center text-sm font-black text-sky-700">
-                  {p.assists}
-                </div>
+                      {/* Coluna 4: Jogos (J) */}
+                      <td className="py-3 px-2 text-center font-mono text-xs font-semibold text-slate-600">
+                        {p.matchesPlayed || 0}
+                      </td>
 
-                {/* Coluna 6: Estrelas (Desktop) */}
-                <div className="hidden md:flex md:col-span-2 justify-center">
-                  <StarRating rating={p.starsRating} size="sm" />
-                </div>
+                      {/* Coluna 5: Vitórias (V) */}
+                      <td className="py-3 px-2 text-center font-mono text-xs font-semibold text-slate-600">
+                        {p.victories || 0}
+                      </td>
 
-                {/* Coluna 7: Botão Avaliar */}
-                <div className="col-span-4 sm:col-span-6 md:col-span-1 flex items-center justify-end gap-1.5 sm:gap-2">
-                  <span className="md:hidden text-[11px] font-black text-amber-700 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 whitespace-nowrap">
-                    ★ {p.starsRating.toFixed(1)}
-                  </span>
+                      {/* Coluna 6: Gols (G) */}
+                      <td className="py-3 px-2 text-center font-mono text-xs font-black text-emerald-700">
+                        {p.goals || 0}
+                      </td>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenVoting(p);
-                    }}
-                    className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition-all active:scale-95 whitespace-nowrap"
-                  >
-                    Avaliar
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                      {/* Coluna 7: Assistências (A) */}
+                      <td className="py-3 px-2 text-center font-mono text-xs font-black text-sky-700">
+                        {p.assists || 0}
+                      </td>
+
+                      {/* Coluna 8: OVR */}
+                      <td className="py-3 px-2 text-center font-mono text-xs font-bold text-slate-700 hidden md:table-cell">
+                        {p.overallRating > 0 ? p.overallRating : '—'}
+                      </td>
+
+                      {/* Coluna 9: Nota (Estrelas) */}
+                      <td className="py-3 px-3 text-center">
+                        {p.starsRating > 0 ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-xs font-black text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                            <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                            {p.starsRating.toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-xs text-slate-400">0.0</span>
+                        )}
+                      </td>
+
+                      {/* Coluna 10: Botão Avaliar */}
+                      <td className="py-3 pl-2 pr-4 text-right">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenVoting(p);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs transition-colors whitespace-nowrap"
+                        >
+                          Avaliar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

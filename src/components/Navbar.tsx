@@ -129,7 +129,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {currentPlayer.nickname || currentPlayer.fullName.split(' ')[0]}
                 </span>
                 <span className="text-[10px] text-emerald-700 font-bold leading-none">
-                  ⭐ {currentPlayer.starsRating.toFixed(1)} • #{currentPlayer.shirtNumber}
+                  {currentPlayer.starsRating > 0
+                    ? `⭐ ${currentPlayer.starsRating.toFixed(1)} • #${currentPlayer.shirtNumber}`
+                    : `Sem nota • #${currentPlayer.shirtNumber}`}
                 </span>
               </div>
             </button>

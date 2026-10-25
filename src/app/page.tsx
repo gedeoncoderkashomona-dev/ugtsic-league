@@ -221,8 +221,15 @@ export default function HomePage() {
     const target = players.find((p) => p.id === playerId);
     if (!target) return;
 
-    const newRating = Number(((target.starsRating * 4 + rating) / 5).toFixed(1));
-    const newOverall = Math.min(99, Math.round(target.overallRating + (rating >= 4.5 ? 1 : 0)));
+    const newRating =
+      target.starsRating <= 0
+        ? Number(rating.toFixed(1))
+        : Number(((target.starsRating * 3 + rating) / 4).toFixed(1));
+    const baseOverallFromStars = Math.round(50 + newRating * 9);
+    const newOverall =
+      target.overallRating <= 0
+        ? Math.min(99, baseOverallFromStars)
+        : Math.min(99, Math.max(baseOverallFromStars, Math.round(target.overallRating + (rating >= 4.5 ? 2 : rating >= 3.5 ? 1 : 0))));
     const isMvp = categoryVote === 'mvp' ? target.mvpCount + 1 : target.mvpCount;
 
     const updatedTarget: PlayerProfile = {

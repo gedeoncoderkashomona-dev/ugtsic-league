@@ -1,7 +1,18 @@
 export type Position = 'goleiro' | 'zagueiro' | 'meio-campo' | 'atacante';
 export type PreferencePosition = 'goleiro' | 'linha' | 'reserva' | 'tanto_faz';
 export type MatchStatus = 'convocando' | 'sorteado' | 'em_andamento' | 'finalizado';
+export type MatchPeriod = 'nao_iniciado' | '1_tempo' | 'intervalo' | '2_tempo' | 'encerrado';
 export type TeamColor = 'azul' | 'vermelho';
+
+export interface MatchTimerState {
+  period: MatchPeriod;
+  halfDurationMinutes: number; // default 25 min por tempo
+  elapsedSeconds: number;      // tempo regulamentar corrido no tempo atual
+  stoppageSeconds: number;     // tempo perdido em pausas a recuperar como acréscimo
+  isRunning: boolean;          // bola rolando
+  isPaused: boolean;           // jogo pausado (dispara cronômetro de pausa/acréscimo)
+  lastTickTimestamp?: number;
+}
 
 export interface PlayerProfile {
   id: string;
@@ -66,5 +77,6 @@ export interface Match {
   presences: MatchPresence[];
   events: MatchEvent[];
   votes?: MatchVote[];
+  timer?: MatchTimerState;
 }
 

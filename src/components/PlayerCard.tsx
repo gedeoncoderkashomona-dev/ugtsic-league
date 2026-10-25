@@ -70,7 +70,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
             />
           </div>
           <span className="absolute -bottom-1 -right-1 bg-emerald-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded-full shadow">
-            {player.overallRating}
+            {player.overallRating > 0 ? player.overallRating : '--'}
           </span>
         </div>
 
@@ -106,7 +106,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         <div className="flex items-start justify-between">
           <div>
             <span className="text-3xl font-black tracking-tight block leading-none">
-              {player.overallRating}
+              {player.overallRating > 0 ? player.overallRating : '--'}
             </span>
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-100 mt-1 inline-flex items-center gap-1">
               <PosIcon className="w-3.5 h-3.5" />

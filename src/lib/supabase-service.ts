@@ -64,6 +64,19 @@ export function saveUIState(partial: Partial<PersistedUIState>) {
 }
 
 function mapRowToProfile(row: any): PlayerProfile {
+  const matchesPlayed = Number(row.matches_played) || 0;
+  const goals = Number(row.goals) || 0;
+  const assists = Number(row.assists) || 0;
+  const mvpCount = Number(row.mvp_count) || 0;
+  const hasPlayedOrScored = matchesPlayed > 0 || goals > 0 || assists > 0 || mvpCount > 0;
+
+  const rawOverall = row.overall_rating !== null && row.overall_rating !== undefined
+    ? Number(row.overall_rating)
+    : 0;
+  const rawStars = row.stars_rating !== null && row.stars_rating !== undefined
+    ? Number(row.stars_rating)
+    : 0;
+
   return {
     id: String(row.id),
     fullName: row.full_name || '',
@@ -71,13 +84,13 @@ function mapRowToProfile(row: any): PlayerProfile {
     shirtNumber: Number(row.shirt_number) || 10,
     favoritePosition: row.favorite_position || 'meio-campo',
     avatarUrl: row.avatar_url || '',
-    overallRating: Number(row.overall_rating) || 80,
-    starsRating: Number(row.stars_rating) || 5.0,
-    matchesPlayed: Number(row.matches_played) || 0,
+    overallRating: !hasPlayedOrScored && rawOverall === 80 && rawStars === 5 ? 0 : rawOverall,
+    starsRating: !hasPlayedOrScored && rawOverall === 80 && rawStars === 5 ? 0 : rawStars,
+    matchesPlayed,
     victories: Number(row.victories) || 0,
-    goals: Number(row.goals) || 0,
-    assists: Number(row.assists) || 0,
-    mvpCount: Number(row.mvp_count) || 0,
+    goals,
+    assists,
+    mvpCount,
     isAdmin: Boolean(row.is_admin),
   };
 }
@@ -240,9 +253,23 @@ export function loadPersistedState(
     const rawMatch = localStorage.getItem(STORAGE_KEYS.MATCH);
     const rawUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
 
-    const players: PlayerProfile[] = rawPlayers ? JSON.parse(rawPlayers) : defaultPlayers;
+    const normalizePlayer = (p: PlayerProfile): PlayerProfile => {
+      const hasPlayed =
+        (p.matchesPlayed || 0) > 0 ||
+        (p.goals || 0) > 0 ||
+        (p.assists || 0) > 0 ||
+        (p.mvpCount || 0) > 0;
+      if (!hasPlayed && p.overallRating === 80 && p.starsRating === 5) {
+        return { ...p, overallRating: 0, starsRating: 0 };
+      }
+      return p;
+    };
+
+    const players: PlayerProfile[] = rawPlayers
+      ? (JSON.parse(rawPlayers) as PlayerProfile[]).map(normalizePlayer)
+      : defaultPlayers;
     const currentUser: PlayerProfile = rawUser
-      ? JSON.parse(rawUser)
+      ? normalizePlayer(JSON.parse(rawUser))
       : players[0] || EMPTY_USER_TEMPLATE;
     let match: Match = rawMatch ? JSON.parse(rawMatch) : defaultMatch;
 
