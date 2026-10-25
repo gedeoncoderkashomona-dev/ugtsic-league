@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import {
   SoccerBallIcon,
+  DevSoccerLogo,
   GlovesIcon,
   JerseyIcon,
   PitchIcon,
@@ -222,9 +223,23 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({
           </svg>
 
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-200 mb-4">
-              <SoccerBallIcon className="w-4 h-4 text-emerald-300 shrink-0" />
-              <span>BEM-VINDO À UGTSIC LEAGUE</span>
+            {/* Cabeçalho Oficial de Boas-Vindas com Logo Dev+Futebol e Bola Real Animada */}
+            <div className="flex items-center gap-3.5 bg-slate-950/45 backdrop-blur-md border border-emerald-400/35 p-3 rounded-2xl shadow-lg mb-4">
+              <DevSoccerLogo className="w-12 h-12 shrink-0 drop-shadow-md" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+                    BEM-VINDO À
+                  </span>
+                  <SoccerBallIcon className="w-4 h-4 shrink-0" />
+                </div>
+                <div className="text-base sm:text-lg font-black tracking-tight text-white leading-tight truncate">
+                  UGTSIC <span className="text-emerald-300">LEAGUE</span>
+                </div>
+                <span className="text-[10px] font-bold text-sky-200/90 block truncate">
+                  Dev &amp; Society • SESAP / G Trigueiro
+                </span>
+              </div>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">

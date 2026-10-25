@@ -4,7 +4,7 @@ import React from 'react';
 import { PlayerProfile } from '@/types';
 import { FOOTBALL_AVATARS } from '@/lib/football-avatars';
 import { Home, Trophy, User, HelpCircle } from 'lucide-react';
-import { SoccerBallIcon, PitchIcon, GoalNetIcon } from './FootballIcons';
+import { SoccerBallIcon, DevSoccerLogo, PitchIcon, GoalNetIcon } from './FootballIcons';
 
 export type NavTab = 'home' | 'sorteio' | 'placar' | 'rankings';
 
@@ -28,23 +28,24 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Top Bar Fixa Desktop & Mobile (Branco Limpo com Verde Futebol e Azul UGTSIC) */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          {/* Logo e Botão Home */}
+          {/* Logo Oficial Dev+Soccer e Botão Home */}
           <div
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => onTabChange('home')}
             title="Voltar para a Tela Inicial (Home)"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-sky-600 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <SoccerBallIcon className="w-6 h-6 text-white" />
+            <div className="w-11 h-11 flex items-center justify-center group-hover:scale-105 transition-transform">
+              <DevSoccerLogo className="w-11 h-11 drop-shadow-sm" />
             </div>
 
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-base font-black tracking-tight text-slate-900">UGTSIC</span>
                 <span className="text-base font-black text-emerald-600">LEAGUE</span>
+                <SoccerBallIcon className="w-4 h-4 shrink-0" />
               </div>
               <p className="text-[10px] text-sky-700 font-bold tracking-tight">
-                SESAP • G Trigueiro Society
+                Dev &amp; Society • SESAP / G Trigueiro
               </p>
             </div>
           </div>
